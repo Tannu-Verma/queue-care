@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Waiting Room</title>
+  <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; background: #0f172a; color: white; padding: 40px; text-align: center; }
+    h1 { font-size: 2em; margin-bottom: 30px; color: #93c5fd; }
+    .now-serving { background: #1e40af; border-radius: 16px; padding: 30px; margin-bottom: 30px; }
+    .now-serving p { font-size: 1.1em; color: #93c5fd; margin-bottom: 10px; }
+    .now-serving h2 { font-size: 2.8em; color: #facc15; font-weight: bold; }
+    .queue-item { background: #1e293b; border-radius: 10px; padding: 16px 24px; margin: 10px auto; max-width: 500px; display: flex; justify-content: space-between; align-items: center; }
+    .token-num { font-size: 1.4em; font-weight: bold; color: #818cf8; }
+    .name { font-size: 1.2em; }
+    .wait { color: #94a3b8; font-size: 0.95em; }
+    .empty { color: #475569; margin-top: 20px; font-size: 1.1em; }
+  </style>
+</head>
+<body>
+
+  <h1>🏥 Clinic Waiting Room</h1>
+
+  <div class="now-serving">
+    <p>🔔 NOW CALLING</p>
+    <h2 id="currentPatient">—</h2>
+  </div>
+
+  <h3 style="color:#64748b; margin-bottom:16px;">NEXT IN QUEUE</h3>
+  <div id="queueList">
+    <p class="empty">Queue is empty</p>
+  </div>
+
+  <script>
+    const socket = io();
+
+    socket.on('queue_update', (data) => {
+      document.getElementById('currentPatient').innerText =
+        data.current || '—';
+
+      const list = document.getElementById('queueList');
+      if (data.queue.length === 0) {
+        list.innerHTML = '<p class="empty">No more patients in queue</p>';
+        return;
+      }
+      list.innerHTML = data.queue.map((name, i) => `
+        <div class="queue-item">
+          <span class="token-num">#${i + 1}</span>
+          <span class="name">${name}</span>
+          <span class="wait">~${data.wait_times[i]} min</span>
+        </div>
+      `).join('');
+    });
+  </script>
+</body>
+</html>
